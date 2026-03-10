@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaving Cert — Past Papers</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f13;
+    --surface: #16181f;
+    --card: #1c1f2a;
+    --border: #2a2d3a;
+    --accent: #e8c84a;
+    --accent2: #5b8dee;
+    --text: #e8e9f0;
+    --muted: #7a7d8f;
+    --higher: #5b8dee;
+    --ordinary: #e87a5b;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  header {
+    padding: 3rem 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 300;
+  }
+
+  /* Level filter */
+  .level-filter {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 2rem auto 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .level-btn {
+    padding: 0.45rem 1.2rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .level-btn:hover { border-color: var(--accent); color: var(--text); }
+  .level-btn.active-all { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 500; }
+  .level-btn.active-higher { background: var(--higher); border-color: var(--higher); color: #fff; font-weight: 500; }
+  .level-btn.active-ordinary { background: var(--ordinary); border-color: var(--ordinary); color: #fff; font-weight: 500; }
+
+  /* Subject grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    max-width: 1100px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .subject-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .subject-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+
+  .subject-card:hover { transform: translateY(-3px); border-color: #3a3d4a; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .subject-card:hover::before { transform: scaleX(1); }
+  .subject-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 8px 32px rgba(232,200,74,0.12); }
+  .subject-card.active::before { transform: scaleX(1); }
+
+  .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .card-subject {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+  }
+
+  .card-topic {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .card-meta {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  .badge-higher { background: rgba(91,141,238,0.15); color: var(--higher); border: 1px solid rgba(91,141,238,0.3); }
+  .badge-ordinary { background: rgba(232,122,91,0.15); color: var(--ordinary); border: 1px solid rgba(232,122,91,0.3); }
+  .badge-year { background: rgba(232,200,74,0.1); color: var(--accent); border: 1px solid rgba(232,200,74,0.2); }
+
+  /* Modal / Question Panel */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .overlay.open { display: flex; align-items: center; justify-content: center; padding: 1rem; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 780px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .panel-header {
+    padding: 2rem 2rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .panel-title-group { flex: 1; }
+
+  .panel-eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+  }
+
+  .close-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    margin-top: 0.25rem;
+  }
+  .close-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* Topic tabs */
+  .topic-tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .topic-tabs::-webkit-scrollbar { display: none; }
+
+  .topic-tab {
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .topic-tab:hover { color: var(--text); border-color: #444; }
+  .topic-tab.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 500; }
+
+  /* Questions list */
+  .questions-body { padding: 1.5rem 2rem 2rem; }
+
+  .level-section { margin-bottom: 2rem; }
+
+  .level-heading {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .level-heading.higher { color: var(--higher); }
+  .level-heading.ordinary { color: var(--ordinary); }
+  .level-heading::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .question-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+  }
+  .question-item:hover { border-color: #3a3d4a; }
+
+  .question-year-tag {
+    font-size: 0.68rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+  }
+
+  .question-text {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--text);
+    font-weight: 300;
+  }
+
+  .question-marks {
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  scrollbar-width: thin;
+  .panel::-webkit-scrollbar { width: 5px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
+  .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">For Halal</p>
+  <h1>Study <span>Less</span><br></h1>
+  <p class="subtitle">Click a subject to explore past exam questions by topic</p>
+
+  <div class="level-filter">
+    <button class="level-btn active-all" data-filter="all">All Levels</button>
+    <button class="level-btn" data-filter="Higher">Higher Level</button>
+    <button class="level-btn" data-filter="Ordinary">Ordinary Level</button>
+  </div>
+</header>
+
+<div class="grid" id="subjectGrid"></div>
+
+<!-- Modal Overlay -->
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel">
+    <div class="panel-header">
+      <div class="panel-title-group">
+        <p class="panel-eyebrow" id="panelEyebrow">Past Papers</p>
+        <h2 class="panel-title" id="panelTitle"></h2>
+      </div>
+      <button class="close-btn" id="closeBtn">✕</button>
+    </div>
+    <div class="topic-tabs" id="topicTabs"></div>
+    <div class="questions-body" id="questionsBody"></div>
+  </div>
+</div>
+
+<script>
+const subjects = [
+  {
+    subject: 'Agricultural Science',
+    icon: '🌱',
+    topics: {
+      'Soil Science': {
+        Higher: [
+          { year: '2023', text: 'Describe the formation of soil from parent material. In your answer, refer to both physical and chemical weathering processes.', marks: '(20 marks)' },
+          { year: '2022', text: 'Explain the role of soil organisms in the nitrogen cycle. Include named examples of bacteria involved at each stage.', marks: '(15 marks)' },
+          { year: '2021', text: 'Compare the water-holding capacity of sandy soil and clay soil. Explain how soil structure affects drainage and aeration.', marks: '(20 marks)' },
+          { year: '2019', text: 'Describe how you would carry out a soil analysis for pH and nutrient content. Explain the significance of the results obtained.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2023', text: 'Name the four main components of soil and give the approximate percentage of each in a fertile soil.', marks: '(12 marks)' },
+          { year: '2022', text: 'What is soil pH? Explain how pH affects plant growth and name one method used to correct soil acidity.', marks: '(10 marks)' },
+          { year: '2020', text: 'List three properties of a good fertile soil and explain why each is important for plant growth.', marks: '(12 marks)' },
+        ]
+      },
+      'Plant Science': {
+        Higher: [
+          { year: '2023', text: 'Describe the process of photosynthesis. Include the light-dependent and light-independent stages in your answer.', marks: '(20 marks)' },
+          { year: '2022', text: 'Explain the role of auxins in plant growth. Describe an experiment to demonstrate phototropism.', marks: '(15 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'Name the raw materials needed for photosynthesis and the products formed. Write the word equation for photosynthesis.', marks: '(10 marks)' },
+          { year: '2021', text: 'Describe the structure of a leaf and explain how it is adapted for photosynthesis.', marks: '(12 marks)' },
+        ]
+      },
+      'Animal Science': {
+        Higher: [
+          { year: '2023', text: 'Describe the digestive system of a ruminant animal. Explain how the rumen enables cattle to digest cellulose.', marks: '(20 marks)' },
+          { year: '2021', text: 'Explain the importance of colostrum for newborn animals. Describe the immune protection it provides.', marks: '(15 marks)' },
+        ],
+        Ordinary: [
+          { year: '2023', text: 'Name two ruminant animals. Give two ways the digestive system of a ruminant differs from a non-ruminant.', marks: '(10 marks)' },
+        ]
+      }
+    }
+  },
+  {
+    subject: 'Applied Maths',
+    icon: '📐',
+    topics: {
+      'Projectiles': {
+        Higher: [
+          { year: '2023', text: 'A particle is projected from a point O with speed 40 m/s at an angle of 30° to the horizontal. Find: (i) the time of flight, (ii) the range, (iii) the maximum height reached.', marks: '(20 marks)' },
+          { year: '2022', text: 'A ball is projected horizontally from the top of a cliff of height 80 m with speed 20 m/s. Find the time taken to reach the ground and the horizontal distance travelled.', marks: '(15 marks)' },
+          { year: '2021', text: 'Two particles are projected simultaneously from the same point, one at 45° and one at 60° to the horizontal. If they have the same range, find the ratio of their initial speeds.', marks: '(25 marks)' },
+          { year: '2019', text: 'A projectile is fired with speed u at angle α. Show that the range R = u²sin2α/g. Hence find the angle for maximum range.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'A stone is thrown horizontally from a window 20 m above the ground at 15 m/s. How far from the base of the building does it land?', marks: '(15 marks)' },
+          { year: '2021', text: 'A ball is projected with speed 30 m/s at 45° to the horizontal. Find the maximum height and the time to reach it.', marks: '(12 marks)' },
+        ]
+      },
+      'Linear Motion': {
+        Higher: [
+          { year: '2023', text: 'A car accelerates uniformly from rest to 60 km/h in 8 seconds, then travels at constant speed for 2 minutes, then decelerates uniformly to rest in 6 seconds. Draw a velocity-time graph and find the total distance.', marks: '(20 marks)' },
+          { year: '2022', text: 'A particle moves in a straight line. Its acceleration is given by a = 3t² − 4t. If the initial velocity is 2 m/s, find the velocity and displacement after 3 seconds.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'A train starts from rest and reaches a speed of 90 km/h with uniform acceleration in 1 minute. Find the acceleration and the distance covered.', marks: '(12 marks)' },
+        ]
+      },
+      'Collisions': {
+        Higher: [
+          { year: '2023', text: 'Two spheres A and B collide directly. A has mass 3 kg moving at 8 m/s and B has mass 5 kg at rest. The coefficient of restitution is 0.5. Find the velocities after impact and the loss in kinetic energy.', marks: '(25 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'Two bodies of masses 4 kg and 6 kg collide. Before collision, both move at 5 m/s in the same direction. They coalesce after collision. Find the common velocity after.', marks: '(12 marks)' },
+        ]
+      }
+    }
+  },
+  {
+    subject: 'Biology',
+    icon: '🧬',
+    topics: {
+      'Genetics': {
+        Higher: [
+          { year: '2023', text: 'Explain the term "genetic mutation". Distinguish between gene mutation and chromosomal mutation and give one example of each.', marks: '(20 marks)' },
+          { year: '2022', text: 'Describe the structure of DNA as proposed by Watson and Crick. Explain how DNA replication occurs during cell division.', marks: '(20 marks)' },
+          { year: '2021', text: 'In pea plants, yellow seed colour (Y) is dominant over green (y). Two heterozygous plants are crossed. Using a Punnett square, predict the ratio of yellow to green seeds in the offspring.', marks: '(15 marks)' },
+          { year: '2020', text: 'Explain what is meant by codominance. Describe the inheritance of ABO blood groups as an example of codominance and multiple alleles.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2023', text: 'What is a gene? Explain the difference between dominant and recessive alleles with a named example.', marks: '(12 marks)' },
+          { year: '2022', text: 'A tall pea plant (TT) is crossed with a short pea plant (tt). What is the genotype and phenotype of all offspring? Explain your answer using a genetic diagram.', marks: '(12 marks)' },
+          { year: '2021', text: 'Name the four bases found in DNA. State the base pairing rule.', marks: '(8 marks)' },
+        ]
+      },
+      'Cell Biology': {
+        Higher: [
+          { year: '2023', text: 'Compare mitosis and meiosis under the following headings: (i) location in the body, (ii) number of divisions, (iii) number of daughter cells produced, (iv) chromosome number of daughter cells.', marks: '(20 marks)' },
+          { year: '2022', text: 'Describe the fluid mosaic model of the cell membrane. Explain the processes of diffusion, osmosis and active transport across the membrane.', marks: '(25 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'Name four organelles found in an animal cell and give the function of each.', marks: '(12 marks)' },
+          { year: '2021', text: 'Explain the difference between plant and animal cells. Give two structures found in plant cells but not in animal cells.', marks: '(10 marks)' },
+        ]
+      },
+      'Ecology': {
+        Higher: [
+          { year: '2023', text: 'Describe the methods used to estimate the population size of (i) a named plant species and (ii) a named mobile animal species in their habitat.', marks: '(20 marks)' },
+          { year: '2021', text: 'Explain the carbon cycle. Describe the human activities that have disrupted the balance of this cycle and the effects on climate.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'Define the term "food chain" and give an example from a named Irish habitat. Identify the producer and consumers in your example.', marks: '(10 marks)' },
+        ]
+      }
+    }
+  },
+  {
+    subject: 'Physics',
+    icon: '⚡',
+    topics: {
+      'Electricity': {
+        Higher: [
+          { year: '2023', text: 'State Ohm\'s Law. Describe an experiment to verify Ohm\'s Law. Include a labelled circuit diagram, method, results and conclusion.', marks: '(20 marks)' },
+          { year: '2022', text: 'A circuit contains three resistors: 4Ω, 6Ω and 12Ω connected in parallel, connected to a 12V battery of internal resistance 0.5Ω. Calculate the total resistance, current from battery and terminal voltage.', marks: '(20 marks)' },
+          { year: '2021', text: 'Explain the photoelectric effect. How does this effect provide evidence for the particle nature of light? Describe a laboratory demonstration.', marks: '(20 marks)' },
+          { year: '2019', text: 'State Faraday\'s Law of electromagnetic induction. Describe how an alternating current generator works. Include a labelled diagram.', marks: '(25 marks)' },
+        ],
+        Ordinary: [
+          { year: '2023', text: 'A bulb of resistance 10Ω is connected to a 230V supply. Calculate the current through the bulb and the power consumed.', marks: '(10 marks)' },
+          { year: '2022', text: 'Explain what is meant by electrical resistance. State two factors that affect the resistance of a wire.', marks: '(10 marks)' },
+          { year: '2021', text: 'Draw a labelled diagram of a simple electric circuit containing a battery, switch, resistor and ammeter. Explain the function of each component.', marks: '(12 marks)' },
+        ]
+      },
+      'Waves & Optics': {
+        Higher: [
+          { year: '2023', text: 'State the laws of refraction. Derive the relationship between refractive index and the critical angle. Calculate the critical angle for glass of refractive index 1.5.', marks: '(20 marks)' },
+          { year: '2022', text: 'Describe Young\'s double slit experiment. How does it demonstrate the wave nature of light? Derive the formula for fringe width.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'State the laws of reflection of light. Draw a ray diagram to show the formation of an image in a plane mirror.', marks: '(12 marks)' },
+        ]
+      },
+      'Mechanics': {
+        Higher: [
+          { year: '2023', text: 'State Newton\'s three laws of motion with an example for each. A 2 kg object falls freely from rest. Calculate its velocity after 4 seconds and the distance fallen.', marks: '(20 marks)' },
+          { year: '2021', text: 'Define momentum and impulse. State the law of conservation of momentum and verify it using a collision example.', marks: '(15 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'State Newton\'s first law of motion. Give one example of this law from everyday life.', marks: '(8 marks)' },
+        ]
+      }
+    }
+  },
+  {
+    subject: 'Maths',
+    icon: '🔢',
+    topics: {
+      'Algebra': {
+        Higher: [
+          { year: '2023', text: 'Solve the equation 2x³ − 5x² − 4x + 3 = 0 given that x = 3 is a root. Hence factorise the expression completely.', marks: '(15 marks)' },
+          { year: '2022', text: 'Use the quadratic formula to solve 3x² − 7x + 2 = 0. Verify your answer by substitution.', marks: '(10 marks)' },
+          { year: '2021', text: 'Solve the simultaneous equations: 2x + 3y = 13 and x² + y² = 25. Interpret your answers geometrically.', marks: '(20 marks)' },
+          { year: '2019', text: 'Prove by induction that the sum of the first n natural numbers is n(n+1)/2.', marks: '(15 marks)' },
+        ],
+        Ordinary: [
+          { year: '2023', text: 'Solve for x: 3(x − 2) + 5 = 2x + 7. Show all your working.', marks: '(8 marks)' },
+          { year: '2022', text: 'Factorise fully: (i) x² − 9, (ii) 2x² + 5x + 3.', marks: '(8 marks)' },
+          { year: '2021', text: 'Solve the simultaneous equations: 3x + y = 10 and x − y = 2.', marks: '(10 marks)' },
+        ]
+      },
+      'Calculus': {
+        Higher: [
+          { year: '2023', text: 'Find from first principles the derivative of f(x) = x². Hence differentiate g(x) = 3x⁴ − 2x³ + 5x − 7.', marks: '(20 marks)' },
+          { year: '2022', text: 'Find ∫(4x³ − 6x + 2) dx. Hence evaluate the definite integral from x=1 to x=3.', marks: '(15 marks)' },
+          { year: '2021', text: 'A particle moves along a line with velocity v(t) = t² − 4t + 3. Find when the particle is at rest, and determine the total distance travelled in the interval 0 ≤ t ≤ 4.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'Differentiate: (i) y = 5x³ − 3x + 4, (ii) y = (2x + 1)⁴.', marks: '(10 marks)' },
+          { year: '2021', text: 'Find the slope of the tangent to the curve y = x² − 3x + 2 at the point where x = 2.', marks: '(10 marks)' },
+        ]
+      },
+      'Probability & Statistics': {
+        Higher: [
+          { year: '2023', text: 'A bag contains 5 red and 3 blue balls. Two balls are drawn without replacement. Find the probability that: (i) both are red, (ii) one is red and one is blue.', marks: '(15 marks)' },
+          { year: '2022', text: 'The heights of students are normally distributed with mean 170 cm and standard deviation 8 cm. Find the probability that a randomly chosen student is taller than 182 cm.', marks: '(15 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'A fair die is rolled once. Find the probability of getting: (i) a 6, (ii) an even number, (iii) a number greater than 4.', marks: '(9 marks)' },
+        ]
+      }
+    }
+  },
+  {
+    subject: 'History',
+    icon: '📜',
+    topics: {
+      'Cold War': {
+        Higher: [
+          { year: '2023', text: 'Why did the USA and USSR become rivals after World War II? In your answer refer to ideological differences, the Truman Doctrine and the Marshall Plan.', marks: '(40 marks)' },
+          { year: '2022', text: 'Describe the Cuban Missile Crisis of 1962. How was the crisis resolved, and what were its consequences for superpower relations?', marks: '(40 marks)' },
+          { year: '2021', text: 'Assess the role of Ronald Reagan in bringing about the end of the Cold War. Refer to his foreign policy, arms race, and relations with Gorbachev.', marks: '(40 marks)' },
+          { year: '2020', text: 'Why was Berlin a flashpoint during the Cold War? Describe the Berlin Blockade and Airlift (1948–49) and the building of the Berlin Wall (1961).', marks: '(40 marks)' },
+        ],
+        Ordinary: [
+          { year: '2023', text: 'Name two events of the Cold War. Choose one and explain why it increased tension between the USA and USSR.', marks: '(20 marks)' },
+          { year: '2022', text: 'What was NATO? Why was it formed and which countries were founding members?', marks: '(15 marks)' },
+          { year: '2020', text: 'Explain what was meant by the Iron Curtain. Name three countries that were behind the Iron Curtain after World War II.', marks: '(15 marks)' },
+        ]
+      },
+      'Irish History': {
+        Higher: [
+          { year: '2023', text: 'How did the 1916 Rising change public opinion in Ireland towards independence? Refer to the executions of its leaders and the aftermath of the Rising in your answer.', marks: '(40 marks)' },
+          { year: '2021', text: 'Describe the events of the Irish War of Independence (1919–1921). Evaluate the role of Michael Collins in the conflict.', marks: '(40 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'Who were the leaders of the 1916 Rising? What happened to them after the Rising?', marks: '(15 marks)' },
+          { year: '2021', text: 'Name two causes of the Irish Civil War (1922–23). Explain why the Treaty divided Irish nationalists.', marks: '(15 marks)' },
+        ]
+      }
+    }
+  },
+  {
+    subject: 'Home Economics',
+    icon: '🍎',
+    topics: {
+      'Nutrition': {
+        Higher: [
+          { year: '2023', text: 'Describe the structure and functions of proteins in the human body. Explain the difference between complete and incomplete proteins and give examples of each.', marks: '(20 marks)' },
+          { year: '2022', text: 'Discuss the role of dietary fibre in maintaining health. Explain the link between low fibre intake and named diseases.', marks: '(15 marks)' },
+          { year: '2021', text: 'Compare the nutritional properties of fat-soluble and water-soluble vitamins. Give examples of each and explain what happens when intake is deficient.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2023', text: 'Name the six classes of nutrients. Give one food source and one function for each.', marks: '(12 marks)' },
+          { year: '2022', text: 'What is the function of calcium in the body? Name two good dietary sources of calcium.', marks: '(8 marks)' },
+        ]
+      },
+      'Food Science': {
+        Higher: [
+          { year: '2023', text: 'Explain the Maillard reaction and caramelisation in food preparation. Give examples of dishes where each reaction is significant.', marks: '(15 marks)' },
+          { year: '2022', text: 'Discuss the principles of food preservation. Explain how refrigeration, dehydration and canning prevent food spoilage at a microbiological level.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'Name three methods of food preservation. Explain how one named method prevents the growth of bacteria.', marks: '(12 marks)' },
+        ]
+      }
+    }
+  },
+  {
+    subject: 'Economics',
+    icon: '📈',
+    topics: {
+      'Supply and Demand': {
+        Higher: [
+          { year: '2023', text: 'Using a supply and demand diagram, explain how an increase in the cost of raw materials affects the equilibrium price and quantity of a good.', marks: '(20 marks)' },
+          { year: '2022', text: 'Explain the concept of price elasticity of demand. How does PED affect the total revenue of a firm when it changes its price?', marks: '(20 marks)' },
+          { year: '2021', text: 'Distinguish between a movement along a demand curve and a shift in the demand curve. Give two factors that cause a shift in demand.', marks: '(15 marks)' },
+        ],
+        Ordinary: [
+          { year: '2023', text: 'State the law of demand. Draw a demand curve and explain why it slopes downward.', marks: '(10 marks)' },
+          { year: '2022', text: 'What is meant by market equilibrium? Using a diagram, show the effect on equilibrium of an increase in supply.', marks: '(12 marks)' },
+        ]
+      },
+      'Macroeconomics': {
+        Higher: [
+          { year: '2023', text: 'Explain the causes and effects of inflation. Distinguish between demand-pull and cost-push inflation with examples.', marks: '(20 marks)' },
+          { year: '2022', text: 'Discuss the role of fiscal policy in managing the economy. Evaluate the use of government spending and taxation as tools to combat recession.', marks: '(25 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'What is GDP? Explain how it is used to measure the standard of living in a country.', marks: '(10 marks)' },
+        ]
+      }
+    }
+  },
+  {
+    subject: 'Business',
+    icon: '💼',
+    topics: {
+      'Enterprise': {
+        Higher: [
+          { year: '2023', text: 'Evaluate the personal characteristics required of a successful entrepreneur. Illustrate your answer with reference to a named Irish entrepreneur.', marks: '(25 marks)' },
+          { year: '2022', text: 'Distinguish between an entrepreneur and an intrapreneur. Discuss the importance of intrapreneurship to a large Irish business.', marks: '(20 marks)' },
+          { year: '2021', text: 'Describe the stages of the business plan. Explain why a business plan is important for a new enterprise seeking finance.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2023', text: 'Name four characteristics of a successful entrepreneur. Explain why each characteristic is important.', marks: '(12 marks)' },
+          { year: '2022', text: 'What is a business plan? List three sections of a business plan and explain what each section contains.', marks: '(12 marks)' },
+        ]
+      },
+      'Management': {
+        Higher: [
+          { year: '2023', text: 'Explain McGregor\'s Theory X and Theory Y. How do these theories influence management style? Give examples.', marks: '(20 marks)' },
+          { year: '2022', text: 'Discuss the functions of management (POSDCORB). Evaluate which function is most important and justify your answer.', marks: '(20 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'Name the four functions of management. Explain one of them with reference to a business you have studied.', marks: '(12 marks)' },
+        ]
+      },
+      'Marketing': {
+        Higher: [
+          { year: '2023', text: 'Explain the marketing mix (4Ps) with reference to a product of your choice. How might the mix change at different stages of the product life cycle?', marks: '(25 marks)' },
+        ],
+        Ordinary: [
+          { year: '2022', text: 'What is market research? Describe two methods of conducting market research and give one advantage of each.', marks: '(12 marks)' },
+        ]
+      }
+    }
+  }
+];
+
+let currentSubject = null;
+let currentTopic = null;
+let currentLevel = 'all';
+
+// Render subject cards
+function renderGrid() {
+  const grid = document.getElementById('subjectGrid');
+  grid.innerHTML = '';
+  subjects.forEach(s => {
+    const allTopics = Object.keys(s.topics);
+    const card = document.createElement('div');
+    card.className = 'subject-card';
+    card.innerHTML = `
+      <span class="card-icon">${s.icon}</span>
+      <div class="card-subject">${s.subject}</div>
+      <div class="card-topic">${allTopics.join(' · ')}</div>
+      <div class="card-meta">
+        <span class="badge badge-higher">Higher</span>
+        <span class="badge badge-ordinary">Ordinary</span>
+      </div>
+    `;
+    card.addEventListener('click', () => openPanel(s));
+    grid.appendChild(card);
+  });
+}
+
+function openPanel(subject) {
+  currentSubject = subject;
+  const topics = Object.keys(subject.topics);
+  currentTopic = topics[0];
+
+  document.getElementById('panelEyebrow').textContent = subject.subject;
+  document.getElementById('panelTitle').textContent = subject.subject + ' — Past Papers';
+
+  renderTopicTabs(topics);
+  renderQuestions();
+
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderTopicTabs(topics) {
+  const container = document.getElementById('topicTabs');
+  container.innerHTML = '';
+  topics.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'topic-tab' + (t === currentTopic ? ' active' : '');
+    btn.textContent = t;
+    btn.addEventListener('click', () => {
+      currentTopic = t;
+      renderTopicTabs(topics);
+      renderQuestions();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function renderQuestions() {
+  const body = document.getElementById('questionsBody');
+  body.innerHTML = '';
+  const topicData = currentSubject.topics[currentTopic];
+
+  const levels = currentLevel === 'all' ? ['Higher', 'Ordinary'] : [currentLevel];
+
+  let hasAny = false;
+  levels.forEach(level => {
+    const qs = topicData[level];
+    if (!qs || qs.length === 0) return;
+    hasAny = true;
+
+    const section = document.createElement('div');
+    section.className = 'level-section';
+    const heading = document.createElement('div');
+    heading.className = `level-heading ${level.toLowerCase()}`;
+    heading.textContent = level + ' Level';
+    section.appendChild(heading);
+
+    qs.forEach(q => {
+      const item = document.createElement('div');
+      item.className = 'question-item';
+      item.innerHTML = `
+        <div class="question-year-tag">📅 ${q.year} Exam</div>
+        <div class="question-text">${q.text}</div>
+        <div class="question-marks">${q.marks}</div>
+      `;
+      section.appendChild(item);
+    });
+    body.appendChild(section);
+  });
+
+  if (!hasAny) {
+    body.innerHTML = '<div class="empty-state">No questions available for this selection.</div>';
+  }
+}
+
+// Level filter
+document.querySelectorAll('.level-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLevel = btn.dataset.filter;
+    document.querySelectorAll('.level-btn').forEach(b => {
+      b.className = 'level-btn';
+    });
+    if (currentLevel === 'all') btn.classList.add('active-all');
+    else if (currentLevel === 'Higher') btn.classList.add('active-higher');
+    else btn.classList.add('active-ordinary');
+
+    if (currentSubject) renderQuestions();
+  });
+});
+
+// Close
+document.getElementById('closeBtn').addEventListener('click', closePanel);
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('overlay')) closePanel();
+});
+
+function closePanel() {
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+renderGrid();
+</script>
+</body>
+</html>
